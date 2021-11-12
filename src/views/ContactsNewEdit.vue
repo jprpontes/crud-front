@@ -50,6 +50,7 @@
               :class="{ 'is-invalid': !form.phoneNumber.valid }"
               id="phone-number"
               v-model="form.phoneNumber.value"
+              v-mask="'(##) #####-####'"
             />
             <div class="invalid-feedback">
               {{ form.phoneNumber.message }}
@@ -66,6 +67,7 @@
               id="zip-code"
               v-model="form.zipCode.value"
               @blur="zipCodeSearch"
+              v-mask="'#####-###'"
             />
             <div class="invalid-feedback">
               {{ form.zipCode.message }}
@@ -166,9 +168,11 @@
 import api from "@/services/api.js";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { mask } from "vue-the-mask";
 export default {
   name: "ContactsNewEdit",
   components: {},
+  directives: { mask },
   data() {
     return {
       states: [],
@@ -251,7 +255,10 @@ export default {
       }
 
       let response = await axios.get(
-        `https://cep.awesomeapi.com.br/json/${this.form.zipCode.value}`
+        `https://cep.awesomeapi.com.br/json/${this.form.zipCode.value.replace(
+          "-",
+          ""
+        )}`
       );
       this.form.address.value = response.data.address;
       this.form.state.value = response.data.state;
@@ -316,19 +323,22 @@ export default {
         this.form.email.message = null;
       }
 
-      if (!this.form.phoneNumber.value) {
+      if (
+        !this.form.phoneNumber.value ||
+        this.form.phoneNumber.value.length < 15
+      ) {
         isValid = false;
         this.form.phoneNumber.valid = false;
-        this.form.phoneNumber.message = "Informe um telefone.";
+        this.form.phoneNumber.message = "Informe um telefone válido.";
       } else {
         this.form.phoneNumber.valid = true;
         this.form.phoneNumber.message = null;
       }
 
-      if (!this.form.zipCode.value) {
+      if (!this.form.zipCode.value || this.form.zipCode.value.length < 9) {
         isValid = false;
         this.form.zipCode.valid = false;
-        this.form.zipCode.message = "Informe um CEP.";
+        this.form.zipCode.message = "Informe um CEP válido.";
       } else {
         this.form.zipCode.valid = true;
         this.form.zipCode.message = null;
@@ -385,8 +395,12 @@ export default {
       return {
         name: this.form.name.value,
         email: this.form.email.value,
-        phone_number: this.form.phoneNumber.value,
-        zip_code: this.form.zipCode.value,
+        phone_number: this.form.phoneNumber.value
+          .replace("(", "")
+          .replace(")", "")
+          .replace(" ", "")
+          .replace("-", ""),
+        zip_code: this.form.zipCode.value.replace("-", ""),
         address: this.form.address.value,
         address_number: this.form.addressNumber.value,
         neighborhood: this.form.neighborhood.value,

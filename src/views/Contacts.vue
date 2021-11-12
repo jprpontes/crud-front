@@ -29,7 +29,7 @@
               <th scope="col">Endereço</th>
               <th scope="col">Número</th>
               <th scope="col">Bairro</th>
-              <th scope="col">Estado</th>
+              <th scope="col">UF</th>
               <th scope="col">Cidade</th>
               <th scope="col"></th>
               <th scope="col"></th>
@@ -39,8 +39,8 @@
             <tr v-for="contact in contacts" :key="contact.id">
               <td>{{ contact.name }}</td>
               <td>{{ contact.email }}</td>
-              <td>{{ contact.phoneNumber }}</td>
-              <td>{{ contact.zipCode }}</td>
+              <td>{{ phoneFormat(contact.phoneNumber) }}</td>
+              <td>{{ zipCodeFormat(contact.zipCode) }}</td>
               <td>{{ contact.address }}</td>
               <td>{{ contact.addressNumber }}</td>
               <td>{{ contact.neighborhood }}</td>
@@ -87,6 +87,12 @@ export default {
     this.getContacts().finally(() => Swal.close());
   },
   methods: {
+    phoneFormat(text) {
+      return text.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+    },
+    zipCodeFormat(text) {
+      return text.replace(/(\d{5})(\d{3})/, "$1-$2");
+    },
     async getContacts() {
       let response = await api.get("contacts");
       this.contacts = response.data.contacts;
